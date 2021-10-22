@@ -1,9 +1,8 @@
 const express = require('express');
-const mongoose = require('mongoose');
+require("./config/database").connect();
 const app = express();
 const bodyParser = require('body-parser')
 
-require('dotenv').config();
 
 //Middlewares - sorta function calls for a particular page/route
 app.use(bodyParser.json());
@@ -12,18 +11,6 @@ app.use('/tasks', () =>{
     console.log("This is a middleware running");
 })
 */
-
-
-
-//MongoDB connection uname=pword=samyuktha
-const uri = process.env.ATLAS_URI;
-mongoose.connect(uri, { });
-
-const connection = mongoose.connection;
-connection.once('open', () => {
-    console.log("MongoDB connection established successfully");
-})
-
 
 
 //Routes
@@ -36,9 +23,15 @@ app.get('/tasks', (req, res) => {
     res.send('These are the tasks');
 });
 */
+
 //Right way to do it:
 const taskRouter = require('./routes/tasks');
 app.use('/tasks', taskRouter);
 
+const usersRouter = require('./routes/users');
+app.use('/account/',usersRouter);
+
 //listening
 app.listen(3000);
+
+module.exports = app;
