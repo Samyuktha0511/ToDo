@@ -4,10 +4,26 @@ const User = require('../models/userModel');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
+const { body, validationResult } = require('express-validator');
 
-//Register
-router.post('/register', async (req, res) => {
-      // Our register logic starts here
+router.post('/register',
+  body('email').isEmail().custom(value => {
+    return User.findOne({email: value}).then(user => {
+      if(user) {
+        return Promise.reject('Email exists already');
+      }
+    });
+  }),
+  body('password').isLength({ min: 5}),
+  async (req, res) => {
+      //find validation err, send it out as an object
+      const errors = validationResult(req);
+      if(!errors.isEmpty()){
+        console.log({errors: errors.array()});
+        return res.status(400).json({ errors: errors.array()});
+      }
+
+      // register logic
   try {
     // Get user input
     const { first_name, last_name, email, password } = req.body;
@@ -19,16 +35,15 @@ router.post('/register', async (req, res) => {
 
     // check if user already exist
     // Validate if user exist in our database
-    const oldUser = await User.findOne({ email });
+    //const oldUser = await User.findOne({ email });
 
-    if (oldUser) {
-      return res.status(409).send("User Already Exist. Please Login");
-    }
+    //if (oldUser) {
+    //  return res.status(409).send("User Already Exist. Please Login");
+    //}
 
     //Encrypt user password
     encryptedPassword = await bcrypt.hash(password, 10);
 
-    // Create user in our database
     const user = await User.create({
       first_name,
       last_name,
@@ -56,10 +71,8 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        // Get user input
         const { email, password } = req.body;
     
-        // Validate user input
         if (!(email && password)) {
           res.status(400).send("All input is required");
         }
@@ -67,7 +80,6 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ email });
     
         if (user && (await bcrypt.compare(password, user.password))) {
-          // Create token
           const token = jwt.sign(
             { user_id: user._id, email },
             process.env.TOKEN_KEY,
