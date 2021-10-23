@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
+const sendMail = require("../middleware/sendMail");
 const { body, validationResult } = require('express-validator');
 
 router.post('/register',
@@ -26,7 +27,7 @@ router.post('/register',
       // register logic
   try {
     // Get user input
-    const { first_name, last_name, email, password } = req.body;
+    const { first_name, last_name, email, password, isValid } = req.body;
 
     // Validate user input
     if (!(email && password && first_name && last_name)) {
@@ -49,6 +50,7 @@ router.post('/register',
       last_name,
       email: email.toLowerCase(), // sanitize: convert email to lowercase
       password: encryptedPassword,
+      isValid,
     });
 
     // Create token
@@ -61,13 +63,33 @@ router.post('/register',
     );
     // save user token
     user.token = token;
-
+    
+    //for nodemailer, send confirmation mail
+    //sendEmail(email)
+    sendMail(email, _id)
     // return new user
     res.status(201).json(user);
+    res.redirect('back');
+    
   } catch (err) {
     console.log(err);
   }
+
 });
+
+router.get('/verify/:id', async (req, res) =>{
+  //helps get the string. I still don't fully understand. Google more
+  const { id } = req.params.id;
+
+  const user = await User.findOne({ id: id});
+  if (user) {
+    user.isValid = true;
+    await user.save();
+
+    res.redirect('/tasks');
+  }
+  
+})
 
 router.post('/login', async (req, res) => {
     try {
