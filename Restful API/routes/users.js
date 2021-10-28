@@ -4,7 +4,7 @@ const User = require('../models/userModel');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
-const sendMail = require("../middleware/sendMail");
+const mailer = require("../middleware/sendMail");
 const { body, validationResult } = require('express-validator');
 
 router.post('/register',
@@ -65,8 +65,8 @@ router.post('/register',
     user.token = token;
     
     //for nodemailer, send confirmation mail
-    //sendEmail(email)
-    sendMail(email, _id)
+    mailer(email, user._id);
+
     // return new user
     res.status(201).json(user);
     res.redirect('back');
@@ -79,14 +79,20 @@ router.post('/register',
 
 router.get('/verify/:id', async (req, res) =>{
   //helps get the string. I still don't fully understand. Google more
-  const { id } = req.params.id;
-
-  const user = await User.findOne({ id: id});
+  
+  const user = await User.findById(req.params.id);
   if (user) {
+    try{
+    console.log(user);
     user.isValid = true;
     await user.save();
 
-    res.redirect('/tasks');
+    res.redirect('/');
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    console.log("user not found")
   }
   
 })

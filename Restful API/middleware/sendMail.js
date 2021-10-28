@@ -1,7 +1,7 @@
 var nodemailer = require('nodemailer')
 require('dotenv').config();
 
-const sendMail = (email, id) => {
+const sendEmail = (email, id) => {
     //resuable transporter object using default SMTP transport
     var Transport = nodemailer.createTransport({
         service: "Gmail",
@@ -17,11 +17,12 @@ const sendMail = (email, id) => {
         from: sender,
         to: email,
         subject: "Email confirmation",
-        html: `Press <a href=http://localhost:3000/verfiy/${id}> here </a> to verify your email`
+        html: `Press <a href=http://localhost:3000/account/verify/${id}> here </a> to verify your email`
     }
 
     //use transport object to send mail
     Transport.sendMail(mailOptions, function(err, res) {
+        console.log(mailOptions.to);
         if (err){
             console.log(err);
         }
@@ -31,4 +32,4 @@ const sendMail = (email, id) => {
     })
 }
 
-module.exports = sendMail;
+module.exports = sendEmail;
