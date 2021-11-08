@@ -3,7 +3,7 @@ let Task = require('../models/taskModel');
 const auth = require("../middleware/auth");
 
 router.route('/').get(auth,(req, res) => {
-    Task.find()
+    Task.find({'userId': req.session.userId})
       .then(tasks => res.json(tasks))
       .catch(err => res.status(400).json('Error: ' + err));
   });
@@ -11,11 +11,13 @@ router.route('/').get(auth,(req, res) => {
   router.route('/add').post(auth, (req, res) => {
     const title = req.body.title;
     const description = req.body.description;
+    const userId = req.session.userId;
   //  const date = Date.parse(req.body.date);
-  
+
     const newTask = new Task({
       title,
-      description
+      description,
+      userId
     });
   
     newTask.save()
@@ -43,7 +45,7 @@ router.route('/').get(auth,(req, res) => {
         //task.date = Date.parse(req.body.date);
   
         task.save()
-          .then(() => res.json('Task updated!'))
+          .then(task => res.json('Task updated!'+task))
           .catch(err => res.status(400).json('Error: ' + err));
       })
       .catch(err => res.status(400).json('Error: ' + err));
