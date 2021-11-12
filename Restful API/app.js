@@ -12,6 +12,8 @@ app.use(bodyParser.json());
 
 app.use(session({
     secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
     store: MongoStore.create({ mongoUrl: process.env.ATLAS_URI })
 }));  
 /*
@@ -31,6 +33,11 @@ app.get('/tasks', (req, res) => {
     res.send('These are the tasks');
 });
 */
+
+app.post('/taskss', (req, res) => {
+   // res.send('These are the tasks');
+    res.send(req.body.emai);
+});
 
 //Right way to do it:
 const taskRouter = require('./routes/tasks');

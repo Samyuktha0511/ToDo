@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
 const mailer = require("../middleware/sendMail");
+const upload = require("../middleware/upload");
 const { body, validationResult } = require('express-validator');
 
 router.post('/register',
@@ -16,6 +17,7 @@ router.post('/register',
     });
   }),
   body('password').isLength({ min: 5}),
+  upload.single("file"),
   async (req, res) => {
       //find validation err, send it out as an object
       const errors = validationResult(req);
@@ -50,8 +52,14 @@ router.post('/register',
       last_name,
       email: email.toLowerCase(), // sanitize: convert email to lowercase
       password: encryptedPassword,
+      img: {
+              data: req.file,
+              contentType: 'image/png'
+      },
       isValid,
     });
+
+    res.send(`You have uploaded this image: <hr/><img src="${req.file.path}" width="500"><hr /><a href="./">Upload another image</a>`);
 
     // Create token
     const token = jwt.sign(
