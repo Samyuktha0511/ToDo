@@ -6,6 +6,10 @@ const bodyParser = require('body-parser')
 const session = require('express-session')
 const MongoStore = require('connect-mongo');
 
+const mongoose = require('mongoose');
+const upload = require("./middleware/upload");
+const Grid = require("gridfs-stream");
+
 //Middlewares - sorta function calls for a particular page/route
 app.use(bodyParser.json());
 
@@ -37,6 +41,23 @@ app.get('/tasks', (req, res) => {
 app.post('/taskss', (req, res) => {
    // res.send('These are the tasks');
     res.send(req.body.emai);
+});
+
+let gfs;
+const connection = mongoose.connection;
+connection.once('open', () => {
+    gfs = Grid(connection.db, mongoose.mongo);
+    if(gfs){console.log("Grid connection established successfully")};
+})
+
+app.get("/file/:filename", async (req, res) => {
+    try {
+        const file = await gfs.files.findOne({ filename: req.params.filename });
+        const readStream = gfs.createReadStream(file.filename);
+        readStream.pipe(res);
+    } catch (error) {
+        res.send("not found");
+    }
 });
 
 //Right way to do it:

@@ -1,11 +1,13 @@
 const router = require('express').Router();
 const User = require('../models/userModel');
+const Image = require('../models/imgModel');
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
 const mailer = require("../middleware/sendMail");
 const upload = require("../middleware/upload");
+const fs = require("fs");
 const { body, validationResult } = require('express-validator');
 
 router.post('/register',
@@ -17,7 +19,6 @@ router.post('/register',
     });
   }),
   body('password').isLength({ min: 5}),
-  upload.single("file"),
   async (req, res) => {
       //find validation err, send it out as an object
       const errors = validationResult(req);
@@ -52,14 +53,8 @@ router.post('/register',
       last_name,
       email: email.toLowerCase(), // sanitize: convert email to lowercase
       password: encryptedPassword,
-      img: {
-              data: req.file,
-              contentType: 'image/png'
-      },
       isValid,
     });
-
-    res.send(`You have uploaded this image: <hr/><img src="${req.file.path}" width="500"><hr /><a href="./">Upload another image</a>`);
 
     // Create token
     const token = jwt.sign(
@@ -148,7 +143,25 @@ router.get('/logout', async (req, res) =>{
   }catch(err){
       console.log(err);
   }
-  
-})
+
+});
+
+router.post('/profile-pic', upload.single('image'), async (req, res) =>{
+  const title = "profile-pic";
+  const userId = req.session.userId;
+  const img = req.file.filename;
+
+//  const date = Date.parse(req.body.date);
+
+  const newImg = new Image({
+    title,
+    userId,
+    img 
+  });
+
+  newImg.save()
+  .then(() => res.json('http://localhost:3000/file/${req.file.filename}'))
+  .catch(err => res.status(400).json('Error: ' + err));
+});
 
 module.exports = router;
