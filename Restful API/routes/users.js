@@ -69,7 +69,7 @@ router.post('/register',
     
     //for nodemailer, send confirmation mail
     mailer(email, user._id);
-
+    console.log(user._id);
     // return new user
     res.status(201).json(user);
    // res.redirect('back');
@@ -146,14 +146,14 @@ router.get('/logout', async (req, res) =>{
 
 });
 
-router.post('/profile-pic', upload.single('image'), async (req, res) =>{
+router.post('/profile-pic', upload.any('image'), async (req, res) =>{
   const title = "profile-pic";
   const userId = req.session.userId;
-  const img = req.file.filename;
-
+  const img = null;
+  console.log(req.params.filename);
 //  const date = Date.parse(req.body.date);
 
-  const newImg = new Image({
+  const newImg = await Image.create({
     title,
     userId,
     img 

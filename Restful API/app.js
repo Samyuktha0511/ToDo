@@ -38,11 +38,6 @@ app.get('/tasks', (req, res) => {
 });
 */
 
-app.post('/taskss', (req, res) => {
-   // res.send('These are the tasks');
-    res.send(req.body.emai);
-});
-
 let gfs;
 const connection = mongoose.connection;
 connection.once('open', () => {
@@ -50,13 +45,30 @@ connection.once('open', () => {
     if(gfs){console.log("Grid connection established successfully")};
 })
 
-app.get("/file/:filename", async (req, res) => {
+app.get("/files", async (req, res) => {
     try {
-        const file = await gfs.files.findOne({ filename: req.params.filename });
+       /* const file = await gfs.files.findOne({ filename: req.params.filename });
         const readStream = gfs.createReadStream(file.filename);
-        readStream.pipe(res);
+        readStream.pipe(res); */
+
+        gfs.files.find().toArray((err, files) => {
+            res.status(200).json(files);
+            /*
+            if (!files || files.length == 0) {
+                return res.status(200).json({
+                    success: false,
+                    message: "no files"
+                })
+            }
+            res.status(200).json({
+                success:true,
+                files
+            });
+            */
+        })
     } catch (error) {
-        res.send("not found");
+        console.log(error);
+        res.send(error);
     }
 });
 
